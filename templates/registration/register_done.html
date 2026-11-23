@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration received{% endblock %}
+
+{% block content %}
+<h1>Thank you!</h1>
+<p>Your account was created and is waiting for the admin's approval. You will be able to log in once it is approved.</p>
+<a href="{% url 'home' %}">Back to home</a>
+{% endblock %}
