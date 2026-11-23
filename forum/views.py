@@ -1,3 +1,8 @@
 from django.shortcuts import render
 
-# Create your views here.
+from .models import Community
+
+
+def home(request):
+    communities = Community.objects.all()
+    return render(request, 'forum/home.html', {'communities': communities})
