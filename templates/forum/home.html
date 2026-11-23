@@ -5,7 +5,7 @@
 <ul class="list-group">
     {% for community in communities %}
     <li class="list-group-item">
-        <strong>{{ community.name }}</strong><br>
+        <strong><a href="{% url 'community_detail' community.pk %}">{{ community.name }}</a></strong><br>
         {{ community.description }}
     </li>
     {% empty %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ community.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ community.name }}</h1>
+<p class="text-muted" dir="auto">{{ community.description }}</p>
+
+<a class="btn btn-sm mb-3" style="background:#C2410C;color:#fff"
+    href="{% url 'post_create' %}?community={{ community.pk }}">+ New post</a>
+
+{% for post in posts %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h5 card-title" dir="auto">
+            <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a>
+        </h2>
+        <p class="text-muted small mb-0">
+            by {{ post.author.username }} · {{ post.created_at|date:"d M Y" }}
+        </p>
+    </div>
+</div>
+{% empty %}
+<p>No posts yet. Be the first to ask a question!</p>
+{% endfor %}
+{% endblock %}
