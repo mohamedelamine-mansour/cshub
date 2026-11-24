@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}New post{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit post{% else %}New post{% endif %}{% endblock %}
 
 {% block content %}
-<h1>New post</h1>
+<h1>{% if form.instance.pk %}Edit post{% else %}New post{% endif %}</h1>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button class="btn btn-primary" type="submit">Publish</button>
+    <button class="btn btn-primary" type="submit">
+        {% if form.instance.pk %}Save changes{% else %}Publish{% endif %}
+    </button>
     <a class="btn btn-outline-secondary" href="{% url 'home' %}">Cancel</a>
 </form>
 {% endblock %}

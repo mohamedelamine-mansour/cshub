@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PostForm
@@ -39,3 +40,30 @@ def post_create(request):
     else:
         form = PostForm(initial={'community': request.GET.get('community')})
     return render(request, 'forum/post_form.html', {'form': form})
+
+
+@login_required
+def post_update(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'forum/post_form.html', {'form': form})
+
+
+@login_required
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        community_pk = post.community.pk
+        post.delete()
+        return redirect('community_detail', pk=community_pk)
+    return render(request, 'forum/post_confirm_delete.html', {'post': post})
