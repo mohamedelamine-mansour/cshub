@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
-from .forms import PostForm
-from .models import Community, Post
+from .forms import CommentForm, PostForm
+from .models import Community, Like, Post
 
 
 def home(request):
@@ -25,7 +26,19 @@ def post_detail(request, pk):
     post = get_object_or_404(
         Post.objects.select_related('author', 'community'), pk=pk
     )
-    return render(request, 'forum/post_detail.html', {'post': post})
+    comments = post.comments.select_related('author')
+    like_count = post.likes.count()
+    user_liked = (
+        request.user.is_authenticated
+        and post.likes.filter(user=request.user).exists()
+    )
+    return render(request, 'forum/post_detail.html', {
+        'post': post,
+        'comments': comments,
+        'like_count': like_count,
+        'user_liked': user_liked,
+        'form': CommentForm(),
+    })
 
 
 @login_required
@@ -67,3 +80,26 @@ def post_delete(request, pk):
         post.delete()
         return redirect('community_detail', pk=community_pk)
     return render(request, 'forum/post_confirm_delete.html', {'post': post})
+
+
+@login_required
+@require_POST
+def comment_create(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
+    return redirect('post_detail', pk=post.pk)
+
+
+@login_required
+@require_POST
+def like_toggle(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+    return redirect('post_detail', pk=post.pk)    
