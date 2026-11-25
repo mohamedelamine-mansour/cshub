@@ -1,15 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="mb-4">Communities</h1>
-<ul class="list-group">
-    {% for community in communities %}
-    <li class="list-group-item">
-        <strong><a href="{% url 'community_detail' community.pk %}">{{ community.name }}</a></strong><br>
-        {{ community.description }}
-    </li>
-    {% empty %}
-    <li class="list-group-item">No communities yet.</li>
-    {% endfor %}
-</ul>
+<div class="row">
+    <aside class="col-md-4 col-lg-3 mb-4">
+        <h2 class="h5">Communities</h2>
+        <div class="list-group mb-3">
+            {% for community in communities %}
+            <a class="list-group-item list-group-item-action" dir="auto"
+                href="{% url 'community_detail' community.pk %}">{{ community.name }}</a>
+            {% empty %}
+            <span class="list-group-item">No communities yet.</span>
+            {% endfor %}
+        </div>
+        {% if user.is_authenticated %}
+        <a class="btn w-100" style="background:#C2410C;color:#fff" href="{% url 'post_create' %}">+ New post</a>
+        {% endif %}
+    </aside>
+
+    <section class="col-md-8 col-lg-9">
+        <h1 class="h4 mb-3">Recent posts</h1>
+        {% for post in page %}
+        {% include 'forum/_post_card.html' %}
+        {% empty %}
+        <p class="text-muted">No posts yet. Be the first to ask a question!</p>
+        {% endfor %}
+        {% include 'forum/_pagination.html' %}
+    </section>
+</div>
 {% endblock %}

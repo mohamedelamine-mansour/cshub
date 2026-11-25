@@ -1,28 +1,61 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
 from .forms import CommentForm, PostForm, ReportForm
 from .models import Community, Like, Post, Report
 
+POSTS_PER_PAGE = 10
+
+
+def posts_with_counts():
+    return Post.objects.select_related('author', 'community').annotate(
+        like_count=Count('likes', distinct=True),
+        comment_count=Count('comments', distinct=True),
+    )
+
+
+def paginate(request, queryset):
+    paginator = Paginator(queryset, POSTS_PER_PAGE)
+    return paginator.get_page(request.GET.get('page'))
 
 
 def home(request):
     communities = Community.objects.all()
-    return render(request, 'forum/home.html', {'communities': communities})
+    page = paginate(request, posts_with_counts())
+    return render(request, 'forum/home.html', {
+        'communities': communities,
+        'page': page,
+    })
 
 
 def community_detail(request, pk):
     community = get_object_or_404(Community, pk=pk)
-    posts = community.posts.select_related('author')
-    return render(
-        request,
-        'forum/community_detail.html',
-        {'community': community, 'posts': posts},
-    )
+    page = paginate(request, posts_with_counts().filter(community=community))
+    return render(request, 'forum/community_detail.html', {
+        'community': community,
+        'page': page,
+    })
+
+
+def search(request):
+    query = request.GET.get('q', '').strip()
+    posts = Post.objects.none()
+    if query:
+        posts = posts_with_counts().filter(
+            Q(title__icontains=query) | Q(body__icontains=query)
+        )
+    page = paginate(request, posts)
+    return render(request, 'forum/search_results.html', {
+        'query': query,
+        'page': page,
+        'querystring': urlencode({'q': query}) if query else '',
+    })
 
 
 def post_detail(request, pk):
@@ -108,17 +141,6 @@ def like_toggle(request, pk):
     return redirect('post_detail', pk=post.pk)    
 
 
-def search(request):
-    query = request.GET.get('q', '').strip()
-    posts = Post.objects.none()
-    if query:
-        posts = Post.objects.filter(
-            Q(title__icontains=query) | Q(body__icontains=query)
-        ).select_related('author', 'community')
-    return render(request, 'forum/search_results.html', {
-        'query': query,
-        'posts': posts,
-    })
 
 
 
@@ -143,3 +165,6 @@ def report_create(request, pk):
     else:
         form = ReportForm()
     return render(request, 'forum/report_form.html', {'form': form, 'post': post})
+
+
+
