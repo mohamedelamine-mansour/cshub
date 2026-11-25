@@ -1,11 +1,13 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.db.models import Q
 
-from .forms import CommentForm, PostForm
-from .models import Community, Like, Post
+from .forms import CommentForm, PostForm, ReportForm
+from .models import Community, Like, Post, Report
+
 
 
 def home(request):
@@ -117,3 +119,27 @@ def search(request):
         'query': query,
         'posts': posts,
     })
+
+
+
+@login_required
+def report_create(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            already = Report.objects.filter(
+                reporter=request.user, post=post, is_handled=False
+            ).exists()
+            if already:
+                messages.info(request, 'You already reported this post. The admin will review it.')
+            else:
+                report = form.save(commit=False)
+                report.reporter = request.user
+                report.post = post
+                report.save()
+                messages.success(request, 'Thank you. Your report was sent to the admin.')
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = ReportForm()
+    return render(request, 'forum/report_form.html', {'form': form, 'post': post})
