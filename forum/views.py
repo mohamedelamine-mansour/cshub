@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 
 from .forms import CommentForm, PostForm
 from .models import Community, Like, Post
@@ -103,3 +104,16 @@ def like_toggle(request, pk):
     if not created:
         like.delete()
     return redirect('post_detail', pk=post.pk)    
+
+
+def search(request):
+    query = request.GET.get('q', '').strip()
+    posts = Post.objects.none()
+    if query:
+        posts = Post.objects.filter(
+            Q(title__icontains=query) | Q(body__icontains=query)
+        ).select_related('author', 'community')
+    return render(request, 'forum/search_results.html', {
+        'query': query,
+        'posts': posts,
+    })

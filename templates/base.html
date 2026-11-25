@@ -12,6 +12,11 @@
     <nav class="navbar bg-light border-bottom">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{% url 'home' %}">Cs<span style="color:#C2410C">Hub</span></a>
+            <form class="d-flex flex-grow-1 mx-3" method="get" action="{% url 'search' %}" role="search">
+                <input class="form-control form-control-sm" type="search" name="q" value="{{ request.GET.q }}"
+                    placeholder="Search posts" dir="auto" aria-label="Search posts">
+                <button class="btn btn-sm btn-outline-secondary ms-2" type="submit">Search</button>
+            </form>
             <div class="d-flex align-items-center gap-2">
                 {% if user.is_authenticated %}
                 <span>{{ user.username }}</span>
