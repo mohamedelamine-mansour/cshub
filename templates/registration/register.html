@@ -7,7 +7,7 @@
 <p class="text-muted">Your account must be approved by the admin before you can log in.</p>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% include 'forum/_form_fields.html' %}
     <button class="btn btn-primary" type="submit">Register</button>
 </form>
 {% endblock %}

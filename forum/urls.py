@@ -13,4 +13,5 @@ urlpatterns = [
     path('post/<int:pk>/like/', views.like_toggle, name='like_toggle'),
     path('search/', views.search, name='search'),
     path('post/<int:pk>/report/', views.report_create, name='report_create'),
+    path('rules/', views.rules, name='rules'),
 ]

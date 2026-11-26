@@ -168,3 +168,8 @@ def report_create(request, pk):
 
 
 
+def rules(request):
+    return render(request, 'forum/rules.html')    
+
+
+

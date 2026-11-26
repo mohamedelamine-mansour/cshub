@@ -6,7 +6,7 @@
 <h1>{% if form.instance.pk %}Edit post{% else %}New post{% endif %}</h1>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% include 'forum/_form_fields.html' %}
     <button class="btn btn-primary" type="submit">
         {% if form.instance.pk %}Save changes{% else %}Publish{% endif %}
     </button>
